@@ -6,15 +6,15 @@
 Paper: *Divide and Refine: Enhancing Multimodal Representation and Explainability for Emotion Recognition in Conversation*,
 arXiv 2601.14274 (đã đọc bản đầy đủ HTML).
 
-**Kết quả trung thực:** trên dữ liệu mô phỏng này, khẳng định K1 (DnR tăng W-F1 so với backbone gốc) **chưa tái hiện được**: Divide+Refine thấp hơn baseline 0.37 điểm W-F1 (3 seed), chỉ Divide đơn lẻ tăng +0.41. Chạy `./reproduce.sh` để sinh `results/metrics.json` và `report/index.html` (hai thư mục này sinh ra khi chạy, không commit trong bản này).
+**Kết quả trung thực:** trên dữ liệu mô phỏng này, khẳng định K1 (DnR tăng W-F1 so với backbone gốc) **chưa tái hiện được**: Divide+Refine thấp hơn baseline 0.37 điểm W-F1 (3 seed), chỉ Divide đơn lẻ tăng +0.41. Chạy `bash reproduce.sh` để sinh `results/metrics.json` và `report/index.html` (hai thư mục này sinh ra khi chạy, không commit trong bản này).
 
 ## Chạy
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
-./reproduce.sh          # dữ liệu -> train 4 cấu hình × 3 seed -> results/metrics.json -> report/index.html
-./run_demo.sh           # app: http://127.0.0.1:5001/?seed=7   (đổi cổng: PORT=5005 ./run_demo.sh)
+bash reproduce.sh        # dữ liệu -> train 4 cấu hình × 3 seed -> results/metrics.json -> report/index.html
+bash run_demo.sh         # app: http://127.0.0.1:5001/?seed=7   (đổi cổng: PORT=5005 bash run_demo.sh)
 .venv/bin/python -m pytest -q tests
 ```
 
@@ -48,7 +48,7 @@ tổng CPU khoảng 24 phút, nên máy 4 nhân có thể lâu hơn nhiều — 
 
 ## Kết quả
 
-Sau khi chạy `./reproduce.sh`, xem `report/index.html` và `results/metrics.json` (mọi số tái hiện nằm ở đó, khoá `summary.<cấu hình>.wf1`,
+Sau khi chạy `bash reproduce.sh`, xem `report/index.html` và `results/metrics.json` (mọi số tái hiện nằm ở đó, khoá `summary.<cấu hình>.wf1`,
 `gain_vs_baseline`, `k1`). README không chép số tái hiện để tránh lệch với file kết quả.
 
 Số của paper (chỉ để so, khác dữ liệu và backbone; W-F1 %, setting atv):
