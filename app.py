@@ -155,7 +155,7 @@ form input{{width:70px}} h2{{font-size:17px;margin:18px 0 6px}} .acc{{font-size:
 <h1>Divide and Refine (DnR) — demo nhận dạng cảm xúc trong hội thoại</h1>
 <p class="label" id="level-label">{label}</p>
 <details><summary><b>Paper này làm gì</b></summary><p>DnR (arXiv 2601.14274) tách biểu diễn mỗi modality thành U (riêng), R (trùng lặp giữa modality),
-S (cộng hưởng) — bước Divide — rồi đóng băng chúng và huấn luyện backbone với các bundle gốc / che modality / nhiễu hoá R bằng InfoNCE — bước Refine.
+S (cộng hưởng) — bước Divide — rồi freeze (cố định) chúng và huấn luyện backbone với các bundle gốc / che modality / nhiễu hoá R bằng InfoNCE — bước Refine.
 App này sinh một hội thoại mô phỏng, chạy model baseline và model DnR đã train (artifacts/), và hiện từng bước.</p></details>
 <p><a href="/report/">→ Trang đánh giá (so với paper)</a> · <a href="/api/predict?{qs}">JSON của ví dụ này</a></p>
 <form method="get">seed <input name="seed" value="{seed}"> noise_a <input name="noise_a" value="{na}">
