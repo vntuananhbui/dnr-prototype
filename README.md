@@ -6,6 +6,8 @@
 Paper: *Divide and Refine: Enhancing Multimodal Representation and Explainability for Emotion Recognition in Conversation*,
 arXiv 2601.14274 (đã đọc bản đầy đủ HTML).
 
+**Kết quả trung thực:** trên dữ liệu mô phỏng này, khẳng định K1 (DnR tăng W-F1 so với backbone gốc) **chưa tái hiện được**: Divide+Refine thấp hơn baseline 0.37 điểm W-F1 (3 seed), chỉ Divide đơn lẻ tăng +0.41. Chạy `./reproduce.sh` để sinh `results/metrics.json` và `report/index.html` (hai thư mục này sinh ra khi chạy, không commit trong bản này).
+
 ## Chạy
 
 ```bash
@@ -46,7 +48,7 @@ tổng CPU khoảng 24 phút, nên máy 4 nhân có thể lâu hơn nhiều — 
 
 ## Kết quả
 
-Xem `report/index.html` và `results/metrics.json` (mọi số tái hiện nằm ở đó, khoá `summary.<cấu hình>.wf1`,
+Sau khi chạy `./reproduce.sh`, xem `report/index.html` và `results/metrics.json` (mọi số tái hiện nằm ở đó, khoá `summary.<cấu hình>.wf1`,
 `gain_vs_baseline`, `k1`). README không chép số tái hiện để tránh lệch với file kết quả.
 
 Số của paper (chỉ để so, khác dữ liệu và backbone; W-F1 %, setting atv):
@@ -77,10 +79,3 @@ Số của paper (chỉ để so, khác dữ liệu và backbone; W-F1 %, settin
 Cần IEMOCAP (đăng ký với USC SAIL) và MELD, trích đặc trưng OpenSmile/OpenFace/sBERT (IEMOCAP) hoặc wav2vec/MA-Net/DeBERTa (MELD),
 cài backbone GNN (MMGCN, DialogueGCN…). `config.yaml` có mục `paper_full` (dims, epoch cận trên). `model.pick_device()` tự dùng CUDA → MPS → CPU.
 Ước lượng: một GPU cỡ L4, vài giờ cho mỗi backbone × dataset; chưa chạy ở đây.
-
-## Bản online
-
-- Code: https://github.com/vntuananhbui/dnr-prototype
-- Trang đánh giá (GitHub Pages, dựng bởi `.github/workflows/pages.yml` từ `results/metrics.json`): https://vntuananhbui.github.io/dnr-prototype/
-- App demo Flask cần Python server nên không chạy trên GitHub Pages; chạy cục bộ bằng `./run_demo.sh`.
-- PNG của `report/` không commit; `python make_report.py` (hoặc `./reproduce.sh`) sinh lại.
