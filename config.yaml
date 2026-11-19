@@ -1,0 +1,70 @@
+# DnR (Divide and Refine, arXiv 2601.14274) — bản thu nhỏ, mức C, dữ liệu mô phỏng.
+# Mỗi dòng ghi nguồn: "paper §x" | "suy ra: lý do" | "chưa rõ".
+
+data:
+  n_dialogues: 600            # suy ra: đủ cho CPU trong 10 phút; IEMOCAP có 151 hội thoại (paper Tab.1)
+  min_len: 8                  # suy ra: theo hợp đồng PM (hội thoại 8-20 utterance)
+  max_len: 20                 # suy ra: theo hợp đồng PM
+  n_classes: 6                # paper §5.1: IEMOCAP 6 lớp (hap, sad, neu, ang, exc, fru)
+  class_names: [hap, sad, neu, ang, exc, fru]   # paper §5.1 (chỉ mượn tên; dữ liệu là mô phỏng)
+  dims: {a: 100, v: 128, t: 192}   # suy ra: hợp đồng PM; paper dùng a100/v512/t768 (§5.1), thu nhỏ v,t cho CPU
+  latent_dim: 8               # suy ra: số chiều của mỗi tín hiệu ẩn trước khi chiếu vào modality
+  stay_prob: 0.6              # suy ra: cảm xúc có quán tính trong hội thoại, để ngữ cảnh (GRU) có ích
+  unique_strength: 1.0        # suy ra: mỗi modality mang riêng một phần thông tin nhãn
+  redundant_strength: 0.6     # suy ra: cả 3 modality cùng mang prototype lớp, yếu
+  synergy_strength: 1.0       # suy ra: XOR giữa a và v, chỉ lộ khi kết hợp
+  noise_std: 8.0              # suy ra: nhiễu Gaussian; chỉnh để 1 modality riêng ~43-58%, gộp ~80% (probe tuyến tính, không phải số kết quả)
+  split: [0.7, 0.1, 0.2]      # suy ra: hợp đồng PM, chia theo hội thoại (paper chia theo hội thoại, Tab.1)
+  seed: 2026                  # suy ra: seed cố định cho dữ liệu
+
+model:
+  d: 32                       # suy ra: chiều mỗi luồng U/R/S (paper: h_m^U,R,S ∈ R^{d_m}, Eq.4, không nêu d)
+  enc_hidden: 128             # suy ra: encoder MLP nhỏ cho CPU
+  gru_hidden: 64              # suy ra: backbone late-fusion + BiGRU (thay MMGCN/DialogueGCN, hợp đồng PM)
+  dropout: 0.1                # suy ra
+
+divide:
+  lambda_uncor: 1.0           # paper §5.1
+  lambda_corr: 0.5            # paper §5.1
+  alpha: 0.5                  # suy ra: paper không nêu α (Eq.8)
+
+refine:
+  lambda1: 0.1                # suy ra: paper không nêu λ1 (Eq.15)
+  lambda2: 0.1                # suy ra: paper không nêu λ2 (Eq.15)
+  K: 2                        # suy ra: paper không nêu số bundle augment K (Eq.11)
+  aug_sigma: 0.1              # suy ra: hợp đồng PM; paper không nêu dạng Aug, ablation nhắc nhiễu Gaussian
+  temperature: 0.1            # suy ra: paper không nêu nhiệt độ InfoNCE
+
+train:
+  optimizer: adamw            # paper §5.1
+  lr: 1.0e-4                  # paper §5.1
+  weight_decay: 0.01          # suy ra: mặc định AdamW của PyTorch
+  batch_size: 32              # suy ra: paper không nêu batch; đơn vị là hội thoại
+  phase1_epochs: 80           # paper §5.1: Divide 30-80 epoch (cận trên; đo: vừa ngân sách 10 phút CPU)
+  phase2_epochs: 50           # paper §5.1: Refine 20-50 epoch (cận trên; đo: vừa ngân sách 10 phút CPU)
+  select_by: val_wf1          # suy ra: chọn epoch phase II theo W-F1 tập val
+  seeds: [0, 1, 2]            # suy ra: hợp đồng PM (≥3 seed); paper không nêu số seed
+  threads_per_run: 2          # suy ra: chạy song song các run trên CPU
+  max_workers: 12             # suy ra: 4 cấu hình × 3 seed chạy cùng lúc
+
+# 4 cấu hình = ablation 2×2: phase I có/không loss Divide, phase II có/không loss Refine.
+configs:
+  baseline:      {divide: false, refine: false}   # paper Tab.3/4 cột backbone gốc (ở đây: late-fusion+BiGRU)
+  refine_only:   {divide: false, refine: true}    # paper §5.3 ablation
+  divide_only:   {divide: true,  refine: false}   # paper §5.3 ablation
+  divide_refine: {divide: true,  refine: true}    # paper Tab.3/4 cột "+DnR"
+
+eval:
+  robustness_noise: [0.0, 4.0, 8.0]   # suy ra: tăng std nhiễu cả 3 modality từ noise_std lên noise_std+e lúc test (phân tích thêm, không có trong paper)
+
+# Ngưỡng khớp (chốt TRƯỚC khi chạy, không nới sau khi thấy kết quả).
+# K1 (paper Tab.3/4): +DnR tăng W-F1 so với backbone gốc, mức +0.74…+1.90 điểm (MMGCN/DialogueGCN).
+# Đây là KIỂM THAY THẾ (dữ liệu mô phỏng, backbone khác) -> kết luận tối đa "Khớp một phần".
+thresholds:
+  k1_partial_gain: 0.5        # suy ra: mean W-F1(divide_refine) - mean W-F1(baseline) ≥ 0.5 điểm -> "Khớp một phần"; nhỏ hơn -> "Chưa tái hiện được"
+
+# Cấu hình bản đầy đủ (cần IEMOCAP/MELD đã trích đặc trưng + GPU; chưa chạy ở đây).
+paper_full:
+  dims: {a: 100, v: 512, t: 768}   # paper §5.1 IEMOCAP
+  phase1_epochs: 80                # paper §5.1 cận trên
+  phase2_epochs: 50                # paper §5.1 cận trên
